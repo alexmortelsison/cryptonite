@@ -11,7 +11,6 @@ import { useSession } from "next-auth/react";
 import Image from "next/image";
 import SignoutButton from "./SignoutButton";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 
 const navlinks = [
   { name: "Home", href: "/" },
@@ -20,7 +19,6 @@ const navlinks = [
 
 export default function UserDropdown() {
   const { data: session } = useSession();
-  const pathname = usePathname();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="items-center flex">
@@ -42,7 +40,7 @@ export default function UserDropdown() {
             <DropdownMenuItem key={idx}>
               <Link
                 href={link.href}
-                className="w-full justify-center items-center flex "
+                className="w-full justify-center items-center flex font-mono"
               >
                 {link.name}
               </Link>
