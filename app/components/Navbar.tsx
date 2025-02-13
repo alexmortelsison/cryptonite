@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ModeToggle } from "./ModeToggle";
 import { useSession } from "next-auth/react";
 import SignInButton from "./SignInButton";
+import UserDropdown from "./UserDropdown";
 
 export default function Navbar() {
   const { data: session } = useSession();
@@ -20,7 +21,7 @@ export default function Navbar() {
             <SignInButton />
           </div>
         ) : (
-          ""
+          <UserDropdown />
         )}
       </div>
     </nav>
