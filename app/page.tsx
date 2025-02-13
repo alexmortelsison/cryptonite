@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { MoveRight } from "lucide-react";
+import SignInButton from "./components/SignInButton";
 
 export default function Home() {
   return (
@@ -12,10 +13,12 @@ export default function Home() {
         DeFi, and market trends. From beginners to experts, we break down
         complex topics so you can navigate the crypto world with confidence.
       </p>
-      <Button className="mt-10 max-w-sm w-full">
-        <MoveRight />
-        SignUp
-      </Button>
+      <div className="mt-8">
+        <Button>
+          <MoveRight />
+          <SignInButton />
+        </Button>
+      </div>
     </div>
   );
 }
