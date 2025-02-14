@@ -15,7 +15,10 @@ export async function POST(req: NextRequest) {
     const file = formData.get("file") as File | null;
 
     if (!file)
-      return NextResponse.json({ message: "No upload file" }, { status: 400 });
+      return NextResponse.json(
+        { message: "No file uploaded" },
+        { status: 400 }
+      );
 
     const fileBuffer = Buffer.from(await file.arrayBuffer());
     const fileName = `${Date.now}-${file.name}`;
