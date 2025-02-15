@@ -14,27 +14,31 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
 
-    if (!file)
+    if (!file) {
       return NextResponse.json(
         { message: "No file uploaded" },
         { status: 400 }
       );
-
+    }
     const fileBuffer = Buffer.from(await file.arrayBuffer());
-    const fileName = `${Date.now}-${file.name}`;
+    const fileName = `${Date.now()}-${file.name}`;
     const uploadParams = {
       Bucket: process.env.AWS_BUCKET_NAME,
       Key: fileName,
       Body: fileBuffer,
       ContentType: file.type,
     };
-
     await s3.send(new PutObjectCommand(uploadParams));
-  } catch (error) {
-    console.error("Upload error:", error);
     return NextResponse.json(
-      { message: "Failed to upload file" },
-      { status: 500 }
+      {
+        message: "File uploaded successfully!",
+        fileUrl: `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`,
+      },
+      { status: 200 }
     );
+  } catch (error) {
+    console.error("Error:", error);
+    NextResponse.json({ message: "Failed to upload file" }, { status: 500 });
+    return;
   }
 }
