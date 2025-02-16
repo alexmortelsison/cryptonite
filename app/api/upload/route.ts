@@ -1,5 +1,5 @@
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 const s3 = new S3Client({
   region: process.env.AWS_REGION,
@@ -9,36 +9,35 @@ const s3 = new S3Client({
   },
 });
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
 
-    if (!file) {
-      return NextResponse.json(
-        { message: "No file uploaded" },
-        { status: 400 }
-      );
-    }
+    if (!file)
+      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+
     const fileBuffer = Buffer.from(await file.arrayBuffer());
     const fileName = `${Date.now()}-${file.name}`;
+
     const uploadParams = {
       Bucket: process.env.AWS_BUCKET_NAME,
       Key: fileName,
       Body: fileBuffer,
       ContentType: file.type,
     };
+
     await s3.send(new PutObjectCommand(uploadParams));
-    return NextResponse.json(
-      {
-        message: "File uploaded successfully!",
-        fileUrl: `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`,
-      },
-      { status: 200 }
-    );
+
+    return NextResponse.json({
+      message: "File uploaded successfully!",
+      fileUrl: `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`,
+    });
   } catch (error) {
-    console.error("Error:", error);
-    NextResponse.json({ message: "Failed to upload file" }, { status: 500 });
-    return;
+    console.error("❌ Upload Error:", error);
+    return NextResponse.json(
+      { error: "Failed to upload file" },
+      { status: 500 }
+    );
   }
 }
