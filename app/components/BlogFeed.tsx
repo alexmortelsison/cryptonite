@@ -1,20 +1,16 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-} from "@/components/ui/card";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { EllipsisVertical } from "lucide-react";
+import { EllipsisVerticalIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface Blog {
   _id: string;
@@ -30,7 +26,7 @@ export default function BlogFeed({ refresh }: { refresh: boolean }) {
   const fetchBlogs = async () => {
     const response = await fetch("/api/blogs");
     if (!response.ok) {
-      throw new Error("Failed to fetch blogs");
+      toast.error("Failed to fetch blogs.");
     }
     setBlogs(await response.json());
   };
@@ -46,43 +42,41 @@ export default function BlogFeed({ refresh }: { refresh: boolean }) {
       const response = await fetch(`/api/blogs?id=${id}`, {
         method: "DELETE",
       });
-
-      if (!response.ok) throw new Error("Failed to delete blog");
-
+      if (!response.ok) throw new Error("Error deleting blog.");
       setBlogs((prevBlogs) => prevBlogs.filter((blog) => blog._id !== id));
+      toast.success("Blog deleted successfully!");
     } catch (error) {
-      console.error(error);
+      console.error("Delete error:", error);
+      return toast.error("Failed to delete blog.");
     }
   };
+
   return (
-    <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      {blogs.length ? (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+      {blogs.length > 0 ? (
         blogs.map((blog) => (
-          <Card key={blog._id} className="flex flex-col items-center">
-            <div className="relative">
-              <DropdownMenu>
-                <DropdownMenuTrigger>
-                  <EllipsisVertical
-                    size={20}
-                    className="absolute top-2 right-2"
-                  />
-                  <DropdownMenuContent className="flex flex-col space-y-2">
-                    <Button>Edit</Button>
-                    <Button onClick={() => deleteBlog(blog._id)}>Delete</Button>
-                  </DropdownMenuContent>
-                </DropdownMenuTrigger>
-              </DropdownMenu>
-              <img src={blog.imageUrl} alt="photo" className="h-full w-full" />
-            </div>
-            <CardHeader>{blog.title}</CardHeader>
+          <Card key={blog._id} className="relative">
             <CardContent>
-              <CardDescription>{blog.overview}</CardDescription>
-              <CardDescription>{blog.description}</CardDescription>
+              <CardTitle>
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="absolute right-2">
+                    <EllipsisVerticalIcon />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem>
+                      <Button onClick={() => deleteBlog(blog._id)}>
+                        Delete
+                      </Button>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <img src={blog.imageUrl} alt="" className="w-full h-full" />
+              </CardTitle>
             </CardContent>
           </Card>
         ))
       ) : (
-        <p>No blogs available</p>
+        <p>No blogs available.</p>
       )}
     </div>
   );

@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 import CreateBlog from "../components/CreateBlog";
 import BlogFeed from "../components/BlogFeed";
@@ -10,7 +11,7 @@ export default function DashboardPage() {
     setRefresh((prev) => !prev);
   };
   return (
-    <div>
+    <div className="max-w-5xl mx-auto">
       <CreateBlog refreshBlogs={refreshBlogs} />
       <BlogFeed refresh={refresh} />
     </div>

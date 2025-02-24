@@ -1,17 +1,18 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { DialogTrigger } from "@radix-ui/react-dialog";
-import { CameraIcon, PlusCircleIcon } from "lucide-react";
+import { CameraIcon, CirclePlusIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -52,12 +53,11 @@ export default function CreateBlog({
         body: formData,
       });
       const data = await response.json();
-      if (!response) throw new Error(data.error || "Failed to upload file.");
+      if (!response.ok) throw new Error(data.error || "Failed to upload file.");
       setFileUrl(data.fileUrl);
-      toast.success("File uploaded successfully!");
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error("Failed to upload file.");
+      return toast.error("Failed to upload file.");
     } finally {
       setLoading(false);
     }
@@ -65,7 +65,7 @@ export default function CreateBlog({
 
   const handleSubmit = async () => {
     if (!title || !overview || !description || !fileUrl) {
-      return toast.error("All fields are required!");
+      return toast.error("All fields are required.");
     }
     try {
       const response = await fetch("/api/blogs", {
@@ -78,58 +78,53 @@ export default function CreateBlog({
           imageUrl: fileUrl,
         }),
       });
-      if (!response.ok) throw new Error("Failed to create blog.");
+      if (!response.ok) throw new Error("Error creating blog");
       toast.success("Blog created successfully!");
       refreshBlogs();
       resetForm();
     } catch (error) {
-      console.error("Submit error:", error);
+      console.error("Create blog error:", error);
       toast.error("Failed to create blog.");
     }
   };
+
   return (
     <Dialog>
       <DialogTrigger className="flex">
-        Create Blog
-        <PlusCircleIcon />
+        CreateBlog
+        <CirclePlusIcon />
       </DialogTrigger>
       <DialogContent>
-        <DialogTitle className="flex flex-col items-center">
-          <Label typeof="file">
+        <DialogTitle className="flex flex-col justify-center items-center">
+          <Label>
             {fileUrl ? (
-              <img
-                src={fileUrl}
-                alt="photo"
-                width={120}
-                height={120}
-                className={loading ? "animate-pulse" : ""}
-              />
+              <img src={fileUrl} alt="photo" />
             ) : (
-              <div>
+              <div className="flex justify-center items-center">
                 <CameraIcon size={45} />
                 <Input
                   className="hidden"
-                  accept="image/*"
                   type="file"
+                  accept="image/*"
                   onChange={handleFileChange}
                 />
               </div>
             )}
           </Label>
         </DialogTitle>
-        <DialogTitle className="flex w-full flex-col mb-4">
-          <h2 className="mb-2">Title</h2>
+        <DialogTitle className="space-y-2">
+          <h2>Title</h2>
           <Input value={title} onChange={(e) => setTitle(e.target.value)} />
         </DialogTitle>
-        <DialogTitle className="flex w-full flex-col mb-4">
-          <h2 className="mb-2">Overview</h2>
+        <DialogTitle className="space-y-2">
+          <h2>Overview</h2>
           <Input
             value={overview}
             onChange={(e) => setOverview(e.target.value)}
           />
         </DialogTitle>
-        <DialogTitle className="flex w-full flex-col mb-4">
-          <h2 className="mb-2">Description</h2>
+        <DialogTitle className="space-y-2">
+          <h2>Description</h2>
           <Textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -137,7 +132,7 @@ export default function CreateBlog({
         </DialogTitle>
         <DialogFooter>
           <Button onClick={handleUpload}>
-            {loading ? "Uploading" : "Upload"}
+            {loading ? "Uploading..." : "Upload"}
           </Button>
           <Button onClick={handleSubmit}>Submit</Button>
         </DialogFooter>

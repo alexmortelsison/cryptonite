@@ -1,15 +1,12 @@
 import Blog from "@/app/models/Blog";
 import connectDB from "@/lib/mongodb";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
     const { title, overview, description, imageUrl } = await req.json();
     if (!title || !overview || !description || !imageUrl) {
-      return NextResponse.json(
-        { error: "All fields are required!" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "All fields required." });
     }
     await connectDB();
     const newBlog = await Blog.create({
@@ -20,9 +17,9 @@ export async function POST(req: NextRequest) {
     });
     return NextResponse.json(newBlog, { status: 201 });
   } catch (error) {
-    console.error("Create error:", error);
+    console.error("Create blog error:", error);
     return NextResponse.json(
-      { error: "Error in creating a new blog" },
+      { error: "Failed to create blog" },
       { status: 500 }
     );
   }
@@ -44,24 +41,21 @@ export async function GET() {
 
 export async function DELETE(req: Request) {
   await connectDB();
-
   const { searchParams } = new URL(req.url);
-  const id = searchParams.get("id"); // Extract blog ID from query params
-
+  const id = searchParams.get("id");
   if (!id) {
     return NextResponse.json(
-      { message: "Blog ID is required" },
+      { error: "Blog id is required." },
       { status: 400 }
     );
   }
-
   try {
     await Blog.findByIdAndDelete(id);
-    return NextResponse.json({ message: "Blog deleted successfully" });
+    return NextResponse.json({ message: "Blog deleted" }, { status: 201 });
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Delete error:", error);
     return NextResponse.json(
-      { message: "Error deleting blog" },
+      { error: "Failed deleting blog" },
       { status: 500 }
     );
   }
