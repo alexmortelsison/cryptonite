@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { CameraIcon, CirclePlusIcon } from "lucide-react";
+import { CameraIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -78,53 +78,54 @@ export default function CreateBlog({
           imageUrl: fileUrl,
         }),
       });
-      if (!response.ok) throw new Error("Error creating blog");
+      if (!response.ok) throw new Error("Failed creating blog.");
       toast.success("Blog created successfully!");
       refreshBlogs();
       resetForm();
     } catch (error) {
       console.error("Create blog error:", error);
-      toast.error("Failed to create blog.");
+      return toast.error("Failed to creating blog.");
     }
   };
-
   return (
     <Dialog>
       <DialogTrigger className="flex">
-        CreateBlog
-        <CirclePlusIcon />
+        <Button asChild>
+          <div>
+            Create Blog
+            <PlusIcon />
+          </div>
+        </Button>
       </DialogTrigger>
       <DialogContent>
-        <DialogTitle className="flex flex-col justify-center items-center">
-          <Label>
-            {fileUrl ? (
-              <img src={fileUrl} alt="photo" />
-            ) : (
-              <div className="flex justify-center items-center">
-                <CameraIcon size={45} />
-                <Input
-                  className="hidden"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                />
-              </div>
-            )}
-          </Label>
-        </DialogTitle>
-        <DialogTitle className="space-y-2">
-          <h2>Title</h2>
+        <Label className="flex justify-center mb-4">
+          {fileUrl ? (
+            <img src={fileUrl} alt="photo" />
+          ) : (
+            <div>
+              <CameraIcon size={45} />
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </div>
+          )}
+        </Label>
+        <DialogTitle>
+          <h3 className="mb-2">Title</h3>
           <Input value={title} onChange={(e) => setTitle(e.target.value)} />
         </DialogTitle>
-        <DialogTitle className="space-y-2">
-          <h2>Overview</h2>
+        <DialogTitle>
+          <h3 className="mb-2">Overview</h3>
           <Input
             value={overview}
             onChange={(e) => setOverview(e.target.value)}
           />
         </DialogTitle>
-        <DialogTitle className="space-y-2">
-          <h2>Description</h2>
+        <DialogTitle>
+          <h3 className="mb-2">Description</h3>
           <Textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}

@@ -25,14 +25,17 @@ export async function POST(req: Request) {
       ContentType: file.type,
     };
     await s3.send(new PutObjectCommand(uploadParams));
-    return NextResponse.json({
-      message: "File uploaded",
-      fileUrl: `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`,
-    });
+    return NextResponse.json(
+      {
+        message: "File uploaded successfully",
+        fileUrl: `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`,
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("Upload error:", error);
     return NextResponse.json(
-      { error: "Failed to upload file" },
+      { error: "Error uploading file." },
       { status: 500 }
     );
   }
