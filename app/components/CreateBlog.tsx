@@ -7,11 +7,11 @@ import {
   DialogContent,
   DialogFooter,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { DialogTrigger } from "@radix-ui/react-dialog";
 import { CameraIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -56,7 +56,7 @@ export default function CreateBlog({
       if (!response.ok) throw new Error(data.error || "Failed to upload file.");
       setFileUrl(data.fileUrl);
     } catch (error) {
-      console.error("Upload error:", error);
+      console.error("File upload error:", error);
       return toast.error("Failed to upload file.");
     } finally {
       setLoading(false);
@@ -78,27 +78,26 @@ export default function CreateBlog({
           imageUrl: fileUrl,
         }),
       });
-      if (!response.ok) throw new Error("Failed creating blog.");
+      if (!response.ok) throw new Error("Failed to create blog.");
       toast.success("Blog created successfully!");
       refreshBlogs();
       resetForm();
     } catch (error) {
       console.error("Create blog error:", error);
-      return toast.error("Failed to creating blog.");
+      return toast.error("Failed to create blog.");
     }
   };
+
   return (
     <Dialog>
-      <DialogTrigger className="flex">
-        <Button asChild>
-          <div>
-            Create Blog
-            <PlusIcon />
-          </div>
+      <DialogTrigger>
+        <Button>
+          Create Blog
+          <PlusIcon />
         </Button>
       </DialogTrigger>
       <DialogContent>
-        <Label className="flex justify-center mb-4">
+        <Label className=" flex justify-center mb-4">
           {fileUrl ? (
             <img src={fileUrl} alt="photo" />
           ) : (
@@ -114,24 +113,24 @@ export default function CreateBlog({
           )}
         </Label>
         <DialogTitle>
-          <h3 className="mb-2">Title</h3>
+          <p className="mb-2">Title</p>
           <Input value={title} onChange={(e) => setTitle(e.target.value)} />
         </DialogTitle>
         <DialogTitle>
-          <h3 className="mb-2">Overview</h3>
+          <p className="mb-2">Overview</p>
           <Input
             value={overview}
             onChange={(e) => setOverview(e.target.value)}
           />
         </DialogTitle>
         <DialogTitle>
-          <h3 className="mb-2">Description</h3>
+          <p className="mb-2">Description</p>
           <Textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
         </DialogTitle>
-        <DialogFooter>
+        <DialogFooter className="mt-4">
           <Button onClick={handleUpload}>
             {loading ? "Uploading..." : "Upload"}
           </Button>

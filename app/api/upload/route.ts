@@ -27,7 +27,7 @@ export async function POST(req: Request) {
     await s3.send(new PutObjectCommand(uploadParams));
     return NextResponse.json(
       {
-        message: "File uploaded successfully",
+        message: "File uploaded.",
         fileUrl: `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`,
       },
       { status: 201 }

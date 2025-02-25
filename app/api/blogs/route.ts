@@ -20,8 +20,11 @@ export async function POST(req: Request) {
     });
     return NextResponse.json(newBlog, { status: 201 });
   } catch (error) {
-    console.error("Create error:", error);
-    return NextResponse.json({ error: "Error creating blog" }, { status: 500 });
+    console.error("Create blog error:", error);
+    return NextResponse.json(
+      { error: "Error creating blog." },
+      { status: 500 }
+    );
   }
 }
 
@@ -33,7 +36,7 @@ export async function GET() {
   } catch (error) {
     console.error("Fetch error:", error);
     return NextResponse.json(
-      { error: "Error fetching blogs" },
+      { error: "Error fetching blogs." },
       { status: 500 }
     );
   }
@@ -44,15 +47,38 @@ export async function DELETE(req: Request) {
 
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
-
   if (!id) {
-    return NextResponse.json({ error: "Blog id required" }, { status: 400 });
+    return NextResponse.json({ error: "Blog id required." }, { status: 400 });
   }
   try {
     await Blog.findByIdAndDelete(id);
-    return NextResponse.json({ message: "Blog deleted" }, { status: 201 });
+    return NextResponse.json(
+      { message: "Deleted blog successfully." },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("Delete error:", error);
     return NextResponse.json({ error: "Error deleting blog" }, { status: 500 });
+  }
+}
+
+export async function PATCH(req: Request) {
+  await connectDB();
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
+  if (!id) {
+    return NextResponse.json({ error: "Blog id required." }, { status: 400 });
+  }
+  const { title, overview, description, imageUrl } = await req.json();
+  try {
+    const updatedBlog = await Blog.findByIdAndUpdate(
+      id,
+      { title, overview, description, imageUrl },
+      { new: true }
+    );
+    return NextResponse.json(updatedBlog, { status: 200 });
+  } catch (error) {
+    console.error("Update error:", error);
+    return NextResponse.json({ error: "Error updating blog" }, { status: 500 });
   }
 }
