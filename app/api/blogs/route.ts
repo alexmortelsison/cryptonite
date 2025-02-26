@@ -64,10 +64,12 @@ export async function DELETE(req: Request) {
 
 export async function PATCH(req: Request) {
   await connectDB();
+
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
+
   if (!id) {
-    return NextResponse.json({ error: "Blog id required." }, { status: 400 });
+    return NextResponse.json({ error: "Blog id required" }, { status: 400 });
   }
   const { title, overview, description, imageUrl } = await req.json();
   try {
@@ -78,7 +80,7 @@ export async function PATCH(req: Request) {
     );
     return NextResponse.json(updatedBlog, { status: 200 });
   } catch (error) {
-    console.error("Update error:", error);
+    console.error("Update blog error:", error);
     return NextResponse.json({ error: "Error updating blog" }, { status: 500 });
   }
 }

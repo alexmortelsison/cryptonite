@@ -9,23 +9,23 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { EllipsisVerticalIcon } from "lucide-react";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { CameraIcon, EllipsisVerticalIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface Blog {
   _id: string;
@@ -39,16 +39,18 @@ export default function BlogFeed({ refresh }: { refresh: boolean }) {
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [editBlog, setEditBlog] = useState<Blog | null>(null);
 
-  // Edit form states
   const [editTitle, setEditTitle] = useState("");
   const [editOverview, setEditOverview] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editImageUrl, setEditImageUrl] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const fetchBlogs = async () => {
-    const response = await fetch("/api/blogs");
+    const response = await fetch("/api/blogs", {
+      method: "GET",
+    });
     const data = await response.json();
     setBlogs(data);
   };
@@ -60,15 +62,15 @@ export default function BlogFeed({ refresh }: { refresh: boolean }) {
   const deleteBlog = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this blog?")) return;
     try {
-      const response = await fetch(`/api/blogs?id=${id}`, {
+      const response = await fetch(`api/blogs?id=${id}`, {
         method: "DELETE",
       });
-      if (!response.ok) throw new Error("Failed deleting blog");
-      setBlogs((prevBlogs) => prevBlogs.filter((blog) => blog._id !== id));
+      if (!response.ok) throw new Error("Failed to delete blog.");
+      setBlogs((prevBlog) => prevBlog.filter((blog) => blog._id !== id));
       toast.success("Blog deleted successfully!");
     } catch (error) {
       console.error("Delete blog error:", error);
-      toast.error("Failed to delete blog.");
+      return toast.error("Failed to delete blog.");
     }
   };
 
@@ -79,19 +81,23 @@ export default function BlogFeed({ refresh }: { refresh: boolean }) {
     setEditDescription(blog.description);
     setEditImageUrl(blog.imageUrl);
     setFile(null);
+    setIsDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setEditBlog(null);
+    setIsDialogOpen(false);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setFile(e.target.files[0]);
-    }
+    if (e.target.files) setFile(e.target.files[0]);
   };
 
   const handleUpload = async () => {
     if (!file) {
-      return toast.error("Please select a file to upload.");
+      return toast.error("Please select a file.");
     }
-    setUploading(true);
+    setLoading(true);
     const formData = new FormData();
     formData.append("file", file);
     try {
@@ -100,21 +106,20 @@ export default function BlogFeed({ refresh }: { refresh: boolean }) {
         body: formData,
       });
       const data = await response.json();
-      if (!response.ok) throw new Error("Failed uploading file");
+      if (!response.ok) throw new Error(data.error || "Failed to upload file.");
       setEditImageUrl(data.fileUrl);
-      toast.success("Image uploaded successfully!");
     } catch (error) {
-      console.error("Upload file error:", error);
-      toast.error("Error uploading file.");
+      console.error("File upload error:", error);
+      return toast.error("Failed to upload file.");
     } finally {
-      setUploading(false);
+      setLoading(false);
     }
   };
 
-  const handleUpdateSubmit = async () => {
+  const handleSubmit = async () => {
     if (!editBlog) return;
     try {
-      const response = await fetch(`/api/blogs?id=${editBlog._id}`, {
+      const response = await fetch(`api/blogs?id=${editBlog._id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -134,11 +139,14 @@ export default function BlogFeed({ refresh }: { refresh: boolean }) {
       toast.success("Blog updated successfully!");
       setEditBlog(null);
     } catch (error) {
-      console.error("Update error:", error);
-      toast.error("Failed to update blog.");
+      console.error("Update blog error:", error);
+      return toast.error("Failed to update blog.");
     }
   };
 
+  const resetImage = () => {
+    setEditImageUrl("");
+  };
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
@@ -188,60 +196,50 @@ export default function BlogFeed({ refresh }: { refresh: boolean }) {
         )}
       </div>
 
-      {/* Edit Blog Dialog: Rendered only when a blog is selected */}
       {editBlog && (
-        <Dialog open>
+        <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
           <DialogContent>
-            <DialogTitle>Edit Blog</DialogTitle>
-            <div className="space-y-4 mt-4">
-              <div>
-                <Label className="block text-sm font-medium">Title</Label>
-                <Input
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-              <div>
-                <Label className="block text-sm font-medium">Overview</Label>
-                <Input
-                  value={editOverview}
-                  onChange={(e) => setEditOverview(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-              <div>
-                <Label className="block text-sm font-medium">Description</Label>
-                <Textarea
-                  value={editDescription}
-                  onChange={(e) => setEditDescription(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-              <div>
-                <Label className="block text-sm font-medium">Image</Label>
-                <img
-                  src={editImageUrl}
-                  alt="Current"
-                  className="w-full h-40 object-cover mb-2"
-                />
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                />
-                <Button
-                  onClick={handleUpload}
-                  disabled={uploading}
-                  className="mt-2"
-                >
-                  {uploading ? "Uploading..." : "Upload New Image"}
-                </Button>
-              </div>
-            </div>
-            <DialogFooter className="mt-4 flex justify-end space-x-2">
-              <Button onClick={() => setEditBlog(null)}>Cancel</Button>
-              <Button onClick={handleUpdateSubmit}>Save</Button>
+            <Label className=" flex justify-center mb-4">
+              {editImageUrl ? (
+                <img src={editImageUrl} alt="photo" onClick={resetImage} />
+              ) : (
+                <div>
+                  <CameraIcon size={45} />
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </div>
+              )}
+            </Label>
+            <DialogTitle>
+              <p className="mb-2">Title</p>
+              <Input
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+              />
+            </DialogTitle>
+            <DialogTitle>
+              <p className="mb-2">Overview</p>
+              <Input
+                value={editOverview}
+                onChange={(e) => setEditOverview(e.target.value)}
+              />
+            </DialogTitle>
+            <DialogTitle>
+              <p className="mb-2">Description</p>
+              <Textarea
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+              />
+            </DialogTitle>
+            <DialogFooter className="mt-4">
+              <Button onClick={handleUpload}>
+                {loading ? "Uploading..." : "Upload"}
+              </Button>
+              <Button onClick={handleSubmit}>Submit</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
